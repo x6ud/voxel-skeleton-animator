@@ -1,7 +1,7 @@
+import UpdateSystem from '../../utils/UpdateSystem';
 import Visible from '../components/Visible';
 import SkeletonEngine from '../SkeletonEngine';
 import SkeletonModelNode from '../SkeletonModelNode';
-import UpdateSystem from '../../utils/UpdateSystem';
 
 export abstract class NodeRenderFilter {
     prioritizeSelectedNode: boolean = true;
@@ -42,24 +42,22 @@ export default class NodesRenderSystem extends UpdateSystem<SkeletonEngine> {
             }
             stack.push(...node.children);
         }
-        if (renderList.length) {
-            const selectedNodeVisible = engine.selectedNode?.getValueOrElse(Visible, true);
-            for (let filter of this.filters) {
-                if (filter.begin(engine)) {
-                    if (filter.prioritizeSelectedNode && engine.selectedNode && selectedNodeVisible) {
-                        filter.render(engine, engine.selectedNode);
-                    }
-                    for (let node of renderList) {
-                        filter.render(engine, node);
-                    }
-                    if (!filter.prioritizeSelectedNode && engine.selectedNode && selectedNodeVisible) {
-                        filter.render(engine, engine.selectedNode);
-                    }
-                    filter.end(engine);
+        const selectedNodeVisible = engine.selectedNode?.getValueOrElse(Visible, true);
+        for (let filter of this.filters) {
+            if (filter.begin(engine)) {
+                if (filter.prioritizeSelectedNode && engine.selectedNode && selectedNodeVisible) {
+                    filter.render(engine, engine.selectedNode);
                 }
+                for (let node of renderList) {
+                    filter.render(engine, node);
+                }
+                if (!filter.prioritizeSelectedNode && engine.selectedNode && selectedNodeVisible) {
+                    filter.render(engine, engine.selectedNode);
+                }
+                filter.end(engine);
             }
-            renderList.length = 0;
         }
+        renderList.length = 0;
     }
 
     end(engine: SkeletonEngine): void {
